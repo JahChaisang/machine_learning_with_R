@@ -1,0 +1,50 @@
+---
+title: "Data Preprocessing in R"
+author: "Jah Chaisangmongkon"
+date: "July 29, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The first step to feature selection is to find correlations between target and features. You should pay attention to p-values, as they are a good measurement that tells whether the feature is significantly correlated with the target. Typically, for small number of variable features, p-value should be less than 0.05. If you have large number of features, you might lower the threshold to 0.01 or 0.001.
+
+Also, R provided a `cor` function to assess correlations among all columns. For some algorithms highly correlated features often skew the predictions. So it might be wise to remove highly correlated features from our feature set.
+
+## Filtering methods: assessing feature correlations
+
+```{r}
+library(mlbench)
+library(caret)
+data("PimaIndiansDiabetes")
+df <- PimaIndiansDiabetes
+df["diabetes"] <- as.numeric(df["diabetes"]=='pos')
+correlationMatrix <- cor(df)
+print(correlationMatrix)
+```
+
+```{r}
+pvalue_list = c()
+for (column in names(df)){
+  pvalue_list[column] <- cor.test(df[[column]], df[['diabetes']])$p.value
+}
+print(pvalue_list)
+```
+
+## Wrapping method : assessing feature importance using random forest model
+
+Note that to run this code, you might need to install package: randomForest. This code might take a long time to run.
+
+```{r}
+control <- trainControl(method="repeatedcv", number=10, repeats=3)
+model <- train(diabetes~., data=PimaIndiansDiabetes, method="rf", preProcess="scale", trControl=control)
+importance <- varImp(model, scale=FALSE)
+print(importance)
+plot(importance)
+```
+
+
+More learning sources:
+https://topepo.github.io/caret/model-training-and-tuning.html

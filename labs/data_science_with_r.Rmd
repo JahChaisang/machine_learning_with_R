@@ -1,0 +1,38 @@
+---
+title: "Data Science with R Lab"
+author: "Jah Chaisangmongkon"
+date: "July 29, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Before we begin, I recommend setting up working directory to be the directory that contain lab documents so that you don't have to worry about path. This is done by the following commands:
+
+```{r}
+working_directory = '/Users/jah/jah/teaching/custom_courses/tdri/labs/'
+setwd(working_directory)
+```
+
+Then perform the following exercise:
+
+1. Load linear_regression_data.csv into R.
+
+```{r}
+df <- read.csv('linear_regression_data.csv')
+```
+
+2. We are going to use linear regression to predict house prices. First of all, let's look at the variable we want to predict: SalePrice. Plot and explore variable SalePrice and perform basic preprocessing for the variable.
+
+```{r}
+summary(df$SalePrice)
+hist(df$SalePrice)
+```
+
+3. Explore the data to see what features are available. And perform preprocessing steps.
+
+4. Fit linear regression to the data and to predict SalePrice.
+
+5. We can also predict whether the house price will be in low, medium, or high rank. Load logistic_regression_data.csv and use logistic regression and decision tree to fit the data.

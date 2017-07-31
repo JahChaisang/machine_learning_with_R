@@ -1,0 +1,129 @@
+---
+title: "Data Preprocessing in R"
+author: "Jah Chaisangmongkon"
+date: "July 29, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The caret package in R provides a number of useful data transforms. The `preProcess()` function is used to build the model for data tranformation procedure. Then the model can be applied to dataset using function `predict()`.
+
+Below is a quick summary of all of the transform methods supported in the method argument of the preProcess() function in caret.
+
+* center: subtract mean from values.
+* scale: divide values by standard deviation.
+* range: normalize values.
+* BoxCox: apply a Box–Cox transform, values must be non-zero and positive.
+* zv: remove attributes with a zero variance (all the same value).
+* nzv: remove attributes with a near zero variance (close to the same value).
+* pca: transform data to the principal components.
+
+We will cover only the first four methods in this demo. You can feel free to try the rest yourself.
+
+## Preprocessing iris dataset
+
+```{r}
+library(caret)
+data(iris)
+summary(iris[,1:4])
+```
+
+### Scaling, Centering, Standardize
+
+The scale transform calculates the standard deviation for an attribute and divides each value by that standard deviation.
+
+Preprocessing function will skip over non-numeric data without error, but iris dataset has only numeric variables, so we ignored nothing.
+
+```{r}
+preprocessParams <- preProcess(iris[,1:4], method=c("scale"))
+print(preprocessParams)
+transformed <- predict(preprocessParams, iris[,1:4])
+summary(transformed)
+```
+
+The center transform calculates the mean for an attribute and subtracts it from each value.
+
+```{r}
+preprocessParams <- preProcess(iris[,1:4], method=c("center"))
+print(preprocessParams)
+transformed <- predict(preprocessParams, iris[,1:4])
+summary(transformed)
+```
+
+Combining the scale and center transforms will standardize your data. Attributes will have a mean value of 0 and a standard deviation of 1.
+
+```{r}
+preprocessParams <- preProcess(iris[,1:4], method=c("center", "scale"))
+print(preprocessParams)
+transformed <- predict(preprocessParams, iris[,1:4])
+summary(transformed)
+```
+
+Data values can be scaled into the range of [0, 1] which is called normalization.
+
+```{r}
+preprocessParams <- preProcess(iris[,1:4], method=c("range"))
+print(preprocessParams)
+transformed <- predict(preprocessParams, iris[,1:4])
+summary(transformed)
+```
+
+### BoxCox Transformation
+
+When an attribute has a Gaussian-like distribution but is shifted, this is called a skew. The distribution of an attribute can be shifted to reduce the skew and make it more Gaussian. The BoxCox transform can perform this operation (assumes all values are positive).
+
+```{r}
+library(mlbench)
+data(PimaIndiansDiabetes)
+hist(PimaIndiansDiabetes$age)
+```
+
+```{r}
+preprocessParams <- preProcess(PimaIndiansDiabetes[c("age","pedigree")], method=c("BoxCox"))
+print(preprocessParams)
+transformed <- predict(preprocessParams, PimaIndiansDiabetes[c("age","pedigree")])
+summary(transformed)
+```
+```{r}
+hist(transformed$age)
+```
+
+### Dealing with missing data
+
+We will use airquality data to demonstrate missing values imputation. Since airquality data doesn't really have any missing values, we will insert some fake missing values.
+
+```{r}
+data("airquality")
+df <- airquality
+df[4:10,3] <- rep(NA,7)
+df[1:5,4] <- NA
+df <- df[-c(5,6)]
+summary(df)
+```
+
+### Analyzing missing value ratios
+
+For each row and column, we would like to know how much data is missing. We should consider dropping features with more than 5% missing values (unless you have lots of samples compared to features). Also rows that miss a lot of values should be dropped as well.
+
+```{r}
+library(mice)
+md.pattern(df)
+```
+
+The `mice()` function takes care of the imputing process. MICE stands for Multivariate Imputations by Chained Equations. The idea is that you can incorporate some randomness into the imputation process. For example, adding some random numbers to the column and compute the mean of the columns. You can repeat this 3-5 times. Then
+
+```{r, echo=FALSE}
+tempData <- mice(df, meth='mean', verbose=FALSE)
+summary(tempData)
+```
+
+```{r}
+completedData <- complete(tempData)
+head(completedData)
+```
+
+More learning sources:
+https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/

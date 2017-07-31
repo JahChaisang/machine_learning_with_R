@@ -1,0 +1,41 @@
+---
+title: "Logistic Regression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this example, we will perform decision tree model fitting on iris dataset example.
+
+## Load the menarche dataset
+```{r}
+library(ggplot2)
+library(lattice)
+library(caret)
+data(iris)
+head(iris)
+```
+
+```{r}
+preprocessParams1 <- preProcess(iris[,1:4], method=c('center', 'scale'))
+iris[,1:4] <- predict(preprocessParams1, iris[,1:4])
+head(iris)
+```
+
+## Create Logistic Regression object
+```{r}
+library(rpart)
+dTree <- rpart(Species ~., data = iris, method="class")
+pred = predict(dTree, iris, type = "class")
+result = data.frame(label=iris$Species, prediction=pred)
+head(result)
+```
+
+```{r}
+confMat <- table(iris$Species, pred)
+accuracy <- sum(diag(confMat))/sum(confMat)
+print(accuracy)
+```
+

@@ -1,0 +1,90 @@
+---
+title: "Linear Regression Example"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+In this example, we will fit logistic regression model to the iris dataset for classification.
+
+```{r}
+data("iris")
+head(iris)
+```
+
+### Data Preprocessing
+
+Let's standardize all columns that are roughly normal or uniformly distributed.
+
+```{r}
+library(caret)
+preprocessParams1 <- preProcess(diabetes[c("AGE", "BMI", "BP", "S1", "S2", "S3", "S5", "S6", "Y")], method=c("center", "scale"))
+diabetes_trans <- data.frame(predict(preprocessParams1, diabetes))
+head(diabetes_trans)
+```
+
+Then apply boxcox transformations for those columns that are skewed.
+
+```{r}
+preprocessParams2 <- preProcess(diabetes_trans[c("S4")], method=c("BoxCox"))
+diabetes_trans <- data.frame(predict(preprocessParams2, diabetes_trans))
+head(diabetes_trans)
+```
+
+And transform `SEX` to dummy variables.
+
+```{r}
+diabetes_trans["SEX"] <- as.numeric(diabetes_trans$SEX == 1)
+head(diabetes_trans)
+```
+
+
+### Splitting dataset for cross validation
+
+First, we split the data into two groups: a training set and a test set. To do this, the `sample` function is used.
+
+```{r}
+#Preparing Data Sets
+trows <- floor(0.65 * nrow(diabetes_trans))
+train_idx <- sample(seq_len(nrow(diabetes_trans)), size = trows)
+
+train <- diabetes_trans[train_idx,]
+test <- diabetes_trans[-train_idx,]
+```
+
+### Data Modeling
+
+Here we create a linear regression model between `Y`, which is our target using all features in the data.
+
+
+```{r}
+hlm <- lm(formula = Y ~ . , data = train)
+summary(hlm)
+```
+
+
+Let's examine the factors that are useful for predicting diabetes progression.
+
+```{r}
+print(hlm$coefficients)
+```
+
+From a quick look, it seems like S1 and S5 (whatever that measure might be) are the most important factors in this model. Let's plot S1 and S5 against our target.
+
+```{r}
+plot(diabetes$S1, diabetes$Y)
+```
+
+```{r}
+plot(diabetes$S5, diabetes$Y)
+```
+
+### Cross validate the model on a test set
+
+```{r}
+yhat = predict(hlm, newdata=test)
+R2 <- 1 - (sum((test$Y-yhat)^2)/sum((test$Y-mean(yhat))^2))
+R2
+```
+
+
