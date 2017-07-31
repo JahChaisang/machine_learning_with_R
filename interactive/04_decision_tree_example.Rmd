@@ -9,7 +9,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this example, we will perform decision tree model fitting on iris dataset example.
 
-## Load the menarche dataset
 ```{r}
 library(ggplot2)
 library(lattice)
@@ -24,7 +23,7 @@ iris[,1:4] <- predict(preprocessParams1, iris[,1:4])
 head(iris)
 ```
 
-## Create Logistic Regression object
+## Create decision tree model
 ```{r}
 library(rpart)
 dTree <- rpart(Species ~., data = iris, method="class")
@@ -39,3 +38,36 @@ accuracy <- sum(diag(confMat))/sum(confMat)
 print(accuracy)
 ```
 
+## Training decision tree using Caret
+
+```{r}
+control <- trainControl(method="cv", number=3)
+model <- train(Species~., data=iris, method="rpart", trControl=control)
+model
+```
+
+Note that cp controls complexity of the tree. The higher cp, the more likely decision tree will be overfitted due to the trees having too many branches and leaves.
+
+## Training knn
+
+Just for the fun of it, let's also fit knn classification and compare to other methods.
+
+```{r}
+model <- train(Species~., data=iris, method="knn", trControl=control)
+model
+```
+
+## KMeans Clustering
+
+Let's also play a little bit with kmeans clustering in R.
+
+```{r}
+library(ggplot2)
+ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) + geom_point()
+```
+
+
+```{r}
+irisCluster <- kmeans(iris[, 3:4], 3, nstart = 20)
+irisCluster
+```

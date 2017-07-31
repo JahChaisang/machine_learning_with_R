@@ -90,10 +90,21 @@ R2
 
 ### Training regression model using Caret
 
+In Caret package, we can use `trainControl` function to automate a lot of training process. `trainControl` function can be used in conjunction with many training algorithms. 
+
+In `trainControl` function, you can specify how you are going to perform cross validation (how many folds, repeats). You can specify what methods to use for parameter search or parameter selection or performance analysis. Check out the reference link below for complete set of options.
+
+Here we use trainControl to simply performance 3-fold cross validation on our diabetes data.
+
+`trainControl` function is used in conjunction with `train` function. `train` function can receives a formula and a dataframe, or simply x and y variable. Then you can specify method (in this case, a linear model) and `trainControl` output.
+
 ```{r}
 control <- trainControl(method="cv", number=3)
-model <- train(Y~., data=diabetes, method="lm", trControl=control)
+model <- train(Y~., data=diabetes_trans, method="lm", trControl=control)
 model
 ```
 
 
+Reference: 
+https://www.rdocumentation.org/packages/caret/versions/6.0-76/topics/trainControl
+https://www.rdocumentation.org/packages/caret/versions/6.0-76/topics/train
