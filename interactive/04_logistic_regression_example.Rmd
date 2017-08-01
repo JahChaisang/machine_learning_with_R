@@ -1,0 +1,57 @@
+---
+title: "Logistic Regression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this example, we will perform logistic regression on iris dataset as an example.
+
+```{r}
+library(MASS)
+library(caret)
+data(iris)
+head(iris)
+```
+
+```{r}
+iris['Species.setosa'] <- as.factor(iris$Species == 'setosa')
+preprocessParams1 <- preProcess(iris[,1:4], method=c('center', 'scale'))
+iris[,1:4] <- predict(preprocessParams1, iris[,1:4])
+head(iris)
+```
+
+
+## Plot the chart
+```{r echo=FALSE}
+plot(iris$Sepal.Length, iris$Species.setosa)
+```
+
+## Create Logistic Regression model
+```{r}
+glm.out <- glm(Species.setosa ~ Sepal.Length, family="binomial", data=iris)
+# Print out predictions for each group
+result <- data.frame(Sepal.Length=iris$Sepal.Length, Prob=glm.out$fitted, Species.setosa=as.numeric(iris$Species.setosa)-1)
+result <- result[order(result$Sepal.Length),]
+```
+
+## Plot outputs
+```{r}
+plot(result$Sepal.Length, result$Species.setosa, type='p')
+lines(result$Sepal.Length, result$Prob, type='l', col='red')
+```
+
+
+```{r}
+control <- trainControl(method="boot")
+model <- train(Species~., data=iris, method="multinom", trControl=control)
+model
+```
+
+Note that this code gave you both accuracy and Kappa. Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes (e.g. 70-30 split for classes 0 and 1 and you can achieve 70% accuracy by predicting all instances are for class 0).
+
+
+Reference:
+http://machinelearningmastery.com/machine-learning-evaluation-metrics-in-r/
